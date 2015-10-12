@@ -1,0 +1,88 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"> 
+
+<title>3D Cube </title>
+
+<script type="text/javascript" src="../Common/webgl-utils.js"></script>
+<script type="text/javascript" src="../Common/initShaders.js"></script>
+<script type="text/javascript" src="../Common/MV.js"></script>
+<script type="text/javascript" src="Cube.js"></script> 
+
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+
+attribute vec4 vPosition;
+attribute vec4 vColor;
+varying vec4 fColor;
+uniform float alpha;
+uniform float beta;
+uniform float gamma;
+
+
+void main(){
+
+       fColor = vColor;
+       float x = vPosition.x;
+       float y = vPosition.y;
+       float z = vPosition.z;
+
+
+        // Initial Cube setup
+        gl_Position.z = z;
+        gl_Position.x = x*cos(0.0*(3.14159/180.0)) - y*sin(0.0*(3.14159/180.0));
+        gl_Position.y = x*sin(0.0*(3.14159/180.0)) + y*cos(0.0*(3.14159/180.0));
+
+
+        // Rotate cube around x axis
+        gl_Position.x = gl_Position.x;
+        gl_Position.z = gl_Position.z*cos(alpha*(3.14159/180.0)) + gl_Position.y*sin(alpha*(3.14159/180.0));
+        gl_Position.y = y*cos(alpha*(3.14159/180.0)) - z*sin(alpha*(3.14159/180.0));
+
+
+        // Rotate the transformed cube around y axis
+         gl_Position.x = gl_Position.x*cos(beta*(3.14159/180.0)) - gl_Position.z*sin(beta*(3.14159/180.0));
+         gl_Position.z = gl_Position.x*sin(beta*(3.14159/180.0)) + gl_Position.z*cos(beta*(3.14159/180.0));
+         gl_Position.y = gl_Position.y;
+
+
+         //Rotate the transformed cube around the z axis
+         float temp_x = gl_Position.x;
+         gl_Position.x = gl_Position.x*cos(gamma*(3.14159/180.0)) - gl_Position.y*sin(gamma*(3.14159/180.0));
+         gl_Position.y = temp_x*sin(gamma*(3.14159/180.0)) + gl_Position.y*cos(gamma*(3.14159/180.0));
+         gl_Position.z = gl_Position.z;
+		 gl_Position.w = 1.0;
+
+
+}
+
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+varying vec4 fColor;
+void main(){
+    gl_FragColor = fColor;
+}
+</script>
+</head>
+<body>
+   <canvas id="gl-canvas" width="512" height="512">
+    HTML5 Canvas not supported!
+   </canvas>
+
+   <br><br>
+    <input id="xSlider" type="range" 
+     min="0", max="360", step="5" value="0" >X Angle 
+   </input><br><br>
+
+     <input id="ySlider" type="range" 
+     min="0", max="360", step="5" value="0" >Y Angle 
+   </input><br><br>
+
+     <input id="zSlider" type="range" 
+     min="0", max="360", step="5" value="0"  >Z Angle 
+   </input><br><br>
+ </body>
+</html>
+
