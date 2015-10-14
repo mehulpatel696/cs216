@@ -106,8 +106,8 @@ function mousemove(event){
 	if(tracking && event.buttons===1){
 
 		
-		var currentVector = getMouseDirectionVector(event);
-        var dotProduct = dot(lastVector, currentVector);
+	        var currentVector = getMouseDirectionVector(event);
+		var dotProduct = dot(lastVector, currentVector);
 		//console.log("Dot product: " + dotProduct);
 
 		var lengthOfCurrentVector = Math.sqrt((lastVector[0] * lastVector[0]) + (lastVector[1] * lastVector[1]) + (lastVector[2] * lastVector[2]));
@@ -119,13 +119,9 @@ function mousemove(event){
 		//console.log("axis: " + axis);		
 		var theta = Math.acos(dotProduct / (lengthOfCurrentVector * lengthOfLastVector));
 		//console.log("theta: " + theta);
-		M = rotate(5*theta * (180 / Math.PI), axis);
-		
+		M = mult(M, rotate(theta * (180 / Math.PI), axis));
 		gl.uniformMatrix4fv(uM, gl.FALSE, flatten(M));
 		requestAnimationFrame(render);
-
-    } else {
-    	lastVector = getMouseDirectionVector(event);
     }
 
 }
