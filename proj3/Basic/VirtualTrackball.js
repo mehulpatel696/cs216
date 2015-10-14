@@ -102,7 +102,7 @@ function mouseup(){
 
 function mousemove(event){ 
 	if(tracking && event.buttons===1){
-		console.log(lastVector);
+		console.log("Last Vector", vector);
   	}
 }
 
