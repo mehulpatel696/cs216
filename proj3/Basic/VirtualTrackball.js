@@ -77,6 +77,7 @@ window.onload = function init() {
 	uM = gl.getUniformLocation(program,"M");
 
 	M = mat4();; // initialize M
+
 	gl.uniformMatrix4fv(uM, gl.FALSE, flatten(M)); 
 
 	requestAnimationFrame(render);
@@ -101,25 +102,31 @@ function mouseup(){
 }
 
 function mousemove(event){ 
+
 	if(tracking && event.buttons===1){
-		//console.log("Last Vector", lastVector);
+
+		
 		var currentVector = getMouseDirectionVector(event);
         var dotProduct = dot(lastVector, currentVector);
-		console.log("Dot product: " + dotProduct);
-		var lengthOfCurrentVector = .5;
-		var lengthOfCurrentVector = Math.sqrt((lastVector[0] * lastVector[0]) + (lastVector[1] * lastVector[1]) + (lastVector[2] * lastVector[2]));
-		console.log("currentVector: " + lengthOfCurrentVector);
-        var lengthOfLastVector = .8;
-		var lengthOfLastVector = Math.sqrt((currentVector[0] * currentVector[0]) + (currentVector[1] * currentVector[1]) + (currentVector[2] * currentVector[2]));
-		console.log("lastVector" + lengthOfLastVector);
-		var axis = cross(lastVector, currentVector);
-		console.log("axis: " + axis);		
-		var theta = Math.acos(dotProduct / (lengthOfCurrentVector * lengthOfLastVector));
-		console.log("theta: " + theta);
-		M = rotate(theta, axis);
-		
+		//console.log("Dot product: " + dotProduct);
 
-  	}
+		var lengthOfCurrentVector = Math.sqrt((lastVector[0] * lastVector[0]) + (lastVector[1] * lastVector[1]) + (lastVector[2] * lastVector[2]));
+		//console.log("currentVector: " + lengthOfCurrentVector);
+
+		var lengthOfLastVector = Math.sqrt((currentVector[0] * currentVector[0]) + (currentVector[1] * currentVector[1]) + (currentVector[2] * currentVector[2]));
+		//console.log("lastVector" + lengthOfLastVector);
+		var axis = cross(lastVector, currentVector);
+		//console.log("axis: " + axis);		
+		var theta = Math.acos(dotProduct / (lengthOfCurrentVector * lengthOfLastVector));
+		//console.log("theta: " + theta);
+		M = rotate(5*theta * (180 / Math.PI), axis);
+		
+		gl.uniformMatrix4fv(uM, gl.FALSE, flatten(M));
+		requestAnimationFrame(render);
+
+    } else {
+    	lastVector = getMouseDirectionVector(event);
+    }
 
 }
 
