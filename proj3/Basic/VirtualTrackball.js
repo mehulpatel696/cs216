@@ -5,7 +5,7 @@ var gl;
 var canvas;
 var vBuffer, cBuffer;
 
-var lastVector;
+var lastVector, currentVector;
 var uM, M;
 var tracking = false;
 
@@ -106,28 +106,29 @@ function mousemove(event){
 	if(tracking && event.buttons===1){
 
 		
+		// The vector of the current mouse position
 		var currentVector = getMouseDirectionVector(event);
+
+		// Get the dot product between the initial vector and the current vector to find the axis we need to rotate about
         var dotProduct = dot(lastVector, currentVector);
-		//console.log("Dot product: " + dotProduct);
-
+		
+		// Need to find the sqrt of the length of both vectors to find theta
 		var lengthOfCurrentVector = Math.sqrt((lastVector[0] * lastVector[0]) + (lastVector[1] * lastVector[1]) + (lastVector[2] * lastVector[2]));
-		//console.log("currentVector: " + lengthOfCurrentVector);
-
 		var lengthOfLastVector = Math.sqrt((currentVector[0] * currentVector[0]) + (currentVector[1] * currentVector[1]) + (currentVector[2] * currentVector[2]));
-		//console.log("lastVector" + lengthOfLastVector);
+		
+		// Take the cross product to find an orthogonal axis to rotate about		
 		var axis = cross(lastVector, currentVector);
-		//console.log("axis: " + axis);		
+
+		// Find the theta by manipulating the dot product formula		
 		var theta = Math.acos(dotProduct / (lengthOfCurrentVector * lengthOfLastVector));
-		//console.log("theta: " + theta);
+		
+		// Use the rotate function to get a 4v4 matrix that transforms the pyramid
 		M = rotate(5*theta * (180 / Math.PI), axis);
 		
+		// Send the transformed matrix to the vertex shader
 		gl.uniformMatrix4fv(uM, gl.FALSE, flatten(M));
 		requestAnimationFrame(render);
-
-    } else {
-    	lastVector = getMouseDirectionVector(event);
     }
-
 }
 
 function getMouseDirectionVector(event){
