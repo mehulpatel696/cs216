@@ -123,7 +123,7 @@ function mousemove(event){
 		var theta = Math.acos(dotProduct / (lengthOfCurrentVector * lengthOfLastVector));
 		
 		// Use the rotate function to get a 4v4 matrix that transforms the pyramid
-		M = rotate(5*theta * (180 / Math.PI), axis);
+		M = mult(rotate(5 * theta * (180 / Math.PI), axis), M);
 		
 		// Send the transformed matrix to the vertex shader
 		gl.uniformMatrix4fv(uM, gl.FALSE, flatten(M));
