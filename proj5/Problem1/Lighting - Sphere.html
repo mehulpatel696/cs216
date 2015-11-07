@@ -1,0 +1,104 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"> 
+
+<title>Lighting Sphere</title>
+
+<script type="text/javascript" src="../Common/webgl-utils.js"></script>
+<script type="text/javascript" src="../Common/initShaders.js"></script>
+<script type="text/javascript" src="../Common/MV.js"></script>
+<script type="text/javascript" src="Lighting - Sphere.js"></script> 
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+precision mediump float;
+
+attribute vec3 vPosition, vNormal;
+
+varying vec3 fPosition, fNormal;
+varying vec4 fColor;
+
+uniform mat4 TrackBallMatrix, ModelMatrix, CameraMatrix;
+
+uniform vec3 Ka, Kd, Ks, Ia, Id, Is, LightPosition, CameraPosition;
+uniform float shininess;
+
+
+vec4 computeColor(vec3 position, vec3 normal) {
+      
+      vec3 lightDir = normalize(LightPosition - position);
+      vec3 viewDir = normalize(CameraPosition - position);
+
+      vec3 ambient = Ia*Ka ;
+      vec3 diffuse = Id*Kd* max(0.0, dot(normal, lightDir));
+
+      vec3 halfVector = normalize(lightDir + viewDir);
+      vec3 specular = Is*Ks* pow( max(dot(halfVector, normal), 0.0), shininess);
+
+      vec3 color = ambient + diffuse + specular;
+      
+      return vec4(color, 1.0);
+}
+
+
+void main(){
+      
+      vec4 wPosition = TrackBallMatrix*ModelMatrix*vec4(vPosition,1); //world position
+                 
+      vec4 v = CameraMatrix*wPosition;
+      v.z = -v.z; // compensate for left handed coordinate system used by WebGL
+      gl_Position = v;
+
+      fPosition = wPosition.xyz;
+
+      vec3 newNormal = vec3(TrackBallMatrix*vec4(vNormal,1));
+
+      fColor = computeColor(wPosition.xyz, newNormal); // for Flat Shading
+      fNormal = fPosition; // for Phong shading
+     
+}
+
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+varying vec3 fPosition;
+varying vec3 fNormal;
+varying vec4 fColor;
+
+uniform vec3 Ka, Kd, Ks, Ia, Id, Is, LightPosition, CameraPosition;
+uniform float shininess;
+
+
+vec4 computeColor(vec3 position, vec3 normal) {
+      
+      vec3 lightDir = normalize(LightPosition - position);
+      vec3 viewDir = normalize(CameraPosition - position);
+
+      vec3 ambient = Ia*Ka ;
+      vec3 diffuse = Id*Kd* max(0.0, dot(normal, lightDir));
+
+      vec3 halfVector = normalize(lightDir + viewDir);
+      vec3 specular = Is*Ks* pow( max(dot(halfVector, normal), 0.0), shininess);
+
+      vec3 color = ambient + diffuse + specular;
+      
+      return vec4(color, 1.0);
+}
+
+void main(){
+      // gl_FragColor = vec4(1,0,1,1); // No shading
+      // gl_FragColor = fColor; // Flat shading
+       gl_FragColor = computeColor(fPosition, normalize(fNormal)); // Phong shading
+}
+
+
+</script>
+</head>
+<body>
+   <canvas id="gl-canvas" width="512" height="512">
+    HTML5 Canvas not supported!
+   </canvas>
+</body>
+</html>
+
