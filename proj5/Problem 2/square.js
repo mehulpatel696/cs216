@@ -15,7 +15,6 @@ var objId = 1.0;
 var S;
 
 window.onload = function init() {
-
 			// Set up WebGL
 			canvas = document.getElementById("gl-canvas");
 			gl = WebGLUtils.setupWebGL( canvas );
@@ -24,7 +23,9 @@ window.onload = function init() {
 			// set clear color 
 			gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
-            //Enable depth test
+
+			
+			//Enable depth test
 			gl.enable(gl.DEPTH_TEST);
 			gl.depthFunc(gl.LEQUAL); // since WebGL uses left handed
 			gl.clearDepth(1.0); 	 // coordinate system
@@ -51,7 +52,7 @@ window.onload = function init() {
 		    gl.uniform1f(Uniforms.objId, objId);
 
 			var button = document.getElementById("cartoon_shading");
-
+			
 			button.onclick = function() {
 			    objId *= -(1.0);
 			    gl.uniform1f(Uniforms.objId, objId);
@@ -92,7 +93,7 @@ window.onload = function init() {
 			gl.uniform3fv( Uniforms.Is, flatten(Light.Is) );
 
 			S = Sphere();
-			S.ModelMatrix = scalem(1,0.5,1);
+			//S.ModelMatrix = scalem(1,0.5,1);
 			var normalModelMatrix = transpose(inverse4(S.ModelMatrix));
 			gl.uniformMatrix4fv(Uniforms.normalModelMatrix, gl.FALSE, flatten(normalModelMatrix));
 			objInit(S);
@@ -126,54 +127,62 @@ function Sphere(){
 		 	  	ModelMatrix: mat4()
 		 	};
 
-	var numTimesToSubdivide = 8; 
+	var numTimesToSubdivide = 4; 
 
-	var s2 = Math.sqrt(2);
-	var s6 = Math.sqrt(6);
+	var r = 1;
 
-	var va = vec3(0,0,1);
-	var vb = vec3(0, 2 * s2/3, -1/3);
-	var vc = vec3(-s6/3, -s2/3, -1/3);
-	var vd = vec3(s6/3, -s2/3, -1/3);
+	var va = vec3(-r,r,0);
+	var vb = vec3(-r,-r, 0);
+	var vc = vec3(r, -r, 0);
+	var vd = vec3(r,r, 0);
+	
+	divideTriangle(va, vb, vc, vd, numTimesToSubdivide);
 
-	tetrahedron(va, vb, vc, vd, numTimesToSubdivide);
+	function divideTriangle(a,b,c,d,n){
 
-    
-	function tetrahedron(a,b,c,d,n){
-		divideTriangle(a,b,c,n);
-		divideTriangle(d,c,b,n);
-		divideTriangle(a,d,b,n);
-		divideTriangle(a,c,d,n);
-	}
-
-	function divideTriangle(a,b,c,n){
 		if(n>0){
 
-			var ab = normalize(mix(a,b,0.5));
-			var ac = normalize(mix(a,c,0.5));
-			var bc = normalize(mix(b,c,0.5));
+			var ab = (mix(a,b,0.5));
+			var ac = (mix(a,c,0.5));
+			var bc = (mix(b,c,0.5));
 
-			n--;
+			//Added
+			var cd = (mix(c,d,0.5));
+			var ad = (mix(a,d,0.5));
 
-			divideTriangle(a,ab,ac,n);
-			divideTriangle(ab,b,bc,n);
-			divideTriangle(bc,c,ac,n);
-			divideTriangle(ab,bc,ac,n);
+            n--;
+
+			//var center_point = Math.sqrt(r^2 + r^2)/2;
+
+			divideTriangle(a,ab,ac,ad,n);
+			divideTriangle(ab,b,bc,ac,n);
+			divideTriangle(ac,bc,c,cd,n);
+			divideTriangle(ad,ac,cd,d,n);
 
 		}
 		else{
 			triangle(a,b,c);
+			triangle(c,d,a);
 		}
 	}
 
 	function triangle(a,b,c){
-		var norm = normalize(cross(subtract(b,a), subtract(c,a)));
+		var norm = cross(subtract(b,a), subtract(c,a));
+		a[2] = calcZ(a[0], a[1]);
+		b[2] = calcZ(b[0], b[1]);
+		c[2] = calcZ(c[0], c[1]);
 		S.vertices.push(a,b,c);
 		S.normals.push(norm,norm,norm);
 	}
 
+	function calcZ(x, y){
+		if (x === 0 && y === 0) return 0;
+		var r = Math.sqrt(x^2 + y^2);
+		return Math.sin(Math.PI * r) / (Math.PI * r)
+	}
 
 	return S;
+
 }
 
 /*------------------------- objInit -------------------------------------*/
@@ -289,8 +298,6 @@ function perspectiveMatrix(fovy, aspect, near, far ){ // near and far are +ve
 	var r = t*aspect;
 	return perspProjectionMatrix(r,-r, t,-t, -near, -far);
 }
-
-
 
 
 //-------------------------- GET UNIFORM AND ATTRIBUTE LOCATIONS -------------
