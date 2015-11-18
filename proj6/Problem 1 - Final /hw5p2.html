@@ -1,7 +1,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8"> 
-
+ 
 <title> HW 5 - Problem 2 </title>
 
 <script type="text/javascript" src="../Common/webgl-utils.js"></script>
@@ -39,19 +39,21 @@ void main(){
       fPosition = wPosition.xyz;
 
       
-      tPosition.x = -vPosition.y;
-      tPosition.y = vPosition.x;
+      tPosition.x = -fPosition.y;
+      tPosition.y = fPosition.x;
       tPosition.z = 0.0;
 
-      btPosition.x = - fPosition.z *  fPosition.x;
-      btPosition.y = - fPosition.z *  fPosition.y;
-      btPosition.z = (fPosition.x * fPosition.x) + (fPosition.y + fPosition.y);
+      // btPosition.x = - fPosition.z *  fPosition.x;
+      // btPosition.y = - fPosition.z *  fPosition.y;
+      // btPosition.z = (fPosition.x * fPosition.x) + (fPosition.y + fPosition.y);
 
       caret_normal =  fPosition / (sqrt( (fPosition.x * fPosition.x) + (fPosition.y * fPosition.y) + (fPosition.z * fPosition.z)));
 
       caret_tangent =  tPosition / (sqrt( (tPosition.x * tPosition.x) + (tPosition.y * tPosition.y) + (tPosition.z * tPosition.z)));
 
-      caret_bitangent =  btPosition / (sqrt( (btPosition.x * btPosition.x) + (btPosition.y * btPosition.y) + (btPosition.z * btPosition.z)));
+      // caret_bitangent =  btPosition / (sqrt( (btPosition.x * btPosition.x) + (btPosition.y * btPosition.y) + (btPosition.z * btPosition.z)));
+
+      caret_bitangent = cross(caret_normal, caret_tangent);
 
       fNormal = vec3(TrackBallMatrix*vec4(NormalTransformationMatrix*vNormal,1));
 
@@ -69,6 +71,7 @@ precision mediump float;
 varying vec3 fPosition, fNormal, tPosition, btPosition;
 varying vec3 caret_normal, caret_tangent, caret_bitangent;
 varying vec2 fTexCoords;
+
 
 uniform vec3 Ka, Kd, Ks, Ia, Id, Is, LightPosition, CameraPosition;
 uniform float shininess;
@@ -99,15 +102,17 @@ vec4 computeColor(vec3 position, vec3 normal) {
 
 void main(){
 
-      vec3 rgb = 2.0 * texture2D( normalSampler , fTexCoords).xyz - 1.0;
+      float r = 2.0 * texture2D( normalSampler , fTexCoords).x - 1.0;
+      float g = 2.0 * texture2D( normalSampler , fTexCoords).y - 1.0;
+      float b = 2.0 * texture2D( normalSampler , fTexCoords).x - 1.0;
 
-      vec3 p1 = rgb.x * caret_tangent;
-      vec3 p2 = rgb.y * caret_bitangent;
-      vec3 p3 = rgb.z * caret_normal;
+      vec3 p1 = r * caret_tangent;
+      vec3 p2 = g * caret_bitangent;
+      vec3 p3 = b * caret_normal;
 
       vec3 newNormal = p1 + p2 + p3;
 
-      gl_FragColor = computeColor(fPosition, normalize(newNormal)); 
+      gl_FragColor = computeColor(fPosition, normalize(fNormal)) + computeColor(fPosition, normalize(newNormal)); 
       
 }
 

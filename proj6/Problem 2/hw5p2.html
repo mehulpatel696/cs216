@@ -62,7 +62,7 @@ vec4 computeColor(vec3 position, vec3 normal) {
       vec3 diffuse = Id*newKd*max(0.0, dot(normal, lightDir));
 
       vec3 halfVector = normalize(lightDir + viewDir);
-      vec3 specular = Is*Ks* pow( max(dot(halfVector, normal), 0.0), shininess);
+      vec3 specular =  Is*Ks* pow( max(dot(halfVector, normal), 0.0), shininess);
 
       vec3 color = ambient + diffuse + specular;
 
