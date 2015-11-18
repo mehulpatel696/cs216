@@ -1,0 +1,95 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"> 
+
+<title> HW 5 - Problem 2 </title>
+
+<script type="text/javascript" src="../Common/webgl-utils.js"></script>
+<script type="text/javascript" src="../Common/initShaders.js"></script>
+<script type="text/javascript" src="../Common/MV.js"></script>
+
+
+<script type="text/javascript" src="hw5p2.js"></script> 
+
+
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+precision mediump float;
+
+attribute vec3 vNormal, vPosition;
+attribute vec2 vTexCoords;
+
+varying vec3 fPosition, fNormal;
+varying vec2 fTexCoords;
+
+uniform mat4 TrackBallMatrix, ModelMatrix, CameraMatrix;
+uniform mat3 NormalTransformationMatrix;
+float caret_normal, caret_tangent, caret_bitangent;
+
+void main(){
+      
+      vec4 wPosition = TrackBallMatrix*ModelMatrix*vec4(vPosition,1); //world position
+      
+      vec4 v = CameraMatrix*wPosition;
+      v.z = -v.z; // compensate for left handed coordinate system used by WebGL
+      gl_Position = v;
+
+      fPosition = wPosition.xyz;
+
+      caret_normal = fPosition / (sqrt( (fPosition.x * fPosition.x) + ))
+
+      fNormal = vec3(TrackBallMatrix*vec4(NormalTransformationMatrix*vNormal,1));
+
+
+      fTexCoords = vTexCoords;
+
+
+}
+
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+varying vec3 fPosition, fNormal;
+varying vec2 fTexCoords;
+
+uniform vec3 Ka, Kd, Ks, Ia, Id, Is, LightPosition, CameraPosition;
+uniform float shininess;
+
+uniform sampler2D Sampler;
+
+vec4 computeColor(vec3 position, vec3 normal) {
+      
+      vec3 lightDir = normalize(LightPosition - position);
+      vec3 viewDir = normalize(CameraPosition - position);
+
+      vec3 ambient = Ia*Ka ;
+	  
+	   vec3 newKd = texture2D(Sampler, fTexCoords).xyz;
+      vec3 diffuse = Id*newKd*max(0.0, dot(normal, lightDir));
+
+      vec3 halfVector = normalize(lightDir + viewDir);
+      vec3 specular = Is*Ks* pow( max(dot(halfVector, normal), 0.0), shininess);
+
+      vec3 color = ambient + diffuse + specular;
+
+      return vec4(color, 1.0);
+
+}
+
+void main(){
+      // Phong shading
+      gl_FragColor = computeColor(fPosition, normalize(fNormal)); 
+}
+
+</script>
+</head>
+<body>
+	<p><b> Note: You need to use a webserver. </b></p>
+   <canvas id="gl-canvas" width="512" height="512">
+    HTML5 Canvas not supported!
+   </canvas>
+</body>
+</html>
+

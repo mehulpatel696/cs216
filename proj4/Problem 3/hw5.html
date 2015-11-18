@@ -33,6 +33,7 @@ void main(){
       float z = vPosition.z;
       if(objId == 0.0) gl_Position = M*vPosition;
       else {
+          
           vec4 v;
           v.x = x;
           if (sin(time) <= 0.0) {

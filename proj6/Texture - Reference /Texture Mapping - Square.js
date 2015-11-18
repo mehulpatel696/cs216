@@ -118,6 +118,9 @@ function objInit(Obj){
 
 	var numItems = 3*Obj.triangles.length;
 
+
+	console.log("Position, normals, cords",Obj.positions.length, Obj.normals.length,Obj.texCoords.length  );
+
 	var usingTexture = ((Obj.texCoords!==undefined) && (Obj.texCoords.length > 0));
 
 	if(usingTexture){

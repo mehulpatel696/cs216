@@ -190,6 +190,8 @@ function objInit(Obj){
 	gl.bufferData(gl.ARRAY_BUFFER, flatten(Obj.normals), gl.STATIC_DRAW);
 
 	var numVertices = Obj.vertices.length;
+	console.log("Positions and Vertices",Obj.vertices.length);
+	console.log("Triangles and Num Items and Normals",  numVertices, Obj.normals.length);
 
 	Obj.draw = function(){
 		// Set attribute pointers

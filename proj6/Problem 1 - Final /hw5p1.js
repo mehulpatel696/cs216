@@ -27,16 +27,19 @@ function webGLinit(){
 
 
 window.onload = function init() {
+
 			// Set up WebGL
 			webGLinit();
 
 			// Get attribute and uniform locations
-			Attributes = getAttributeLocations("vPosition", "vNormal", "vTexCoords");
+			Attributes = getAttributeLocations( "vTexCoords","vNormal","vPosition");
+
 
 			Uniforms = getUniformLocations(
 			  "ModelMatrix", "NormalTransformationMatrix", "CameraMatrix", "TrackBallMatrix", "CameraPosition",
 			  "Ka", "Kd", "Ks", "shininess", "Ia", "Id", "Is", "LightPosition", "Sampler"
 			);
+
 
 			// Set up virtual trackball
 			TrackBall(); 	
@@ -48,6 +51,7 @@ window.onload = function init() {
 			var C = Camera();
 			C.lookAt(eye,at,up);
 			C.setPerspective(60,1,0.1,10);
+
 
 			// Set Light 
 			var L = Light();
@@ -64,9 +68,11 @@ window.onload = function init() {
 
 
 function render(now){
+
 	requestAnimationFrame(render);
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	M.draw();
+
 }
 
 
@@ -74,115 +80,91 @@ function render(now){
 
 function Sphere(){
 
-	//Texture Coordinates 
-	var ta = vec2(0,0);
-	var tb = vec2(1,0);
-	var tc = vec2(1,1);
-	var td = vec2(0,1);
+    var S = {     positions: [],
+                normals: [],
+                texCoords: [],
+                triangles: [],
+                material: {    Ka: vec3(0.1, 0.1, 0.1),
+                            Kd: vec3(0.7, 0.1, 0.6),
+                            Ks: vec3(0.1, 0.1, 0.1),
+                            shininess: 1
+                },
+                ModelMatrix: mat4()
+            };
 
-	var S = { 	
-				positions : [],
-				vertices: [],
-		 	  	normals: [], 
-		 	  	texCoords: [ta,tb,tc,td],
-		 	  	triangles: [],
-		 	  	material: {	Ka: vec3(0.9, 0.9, 0.9),
-		 	  				Kd: vec3(0.7, 0.1, 0.6),
-		 	  				Ks: vec3(0.9, 0.9, 0.9),
-		 	  				shininess: 500
-		 	  	},
-		 	  	ModelMatrix: mat4(),
-		 	  	diffuseTexture: ""
+    var N = 100; 
+    var i, j;
 
-		 	};
-
-	var numTimesToSubdivide = 1; 
-
-	var s2 = Math.sqrt(2);
-	var s6 = Math.sqrt(6);
-
-	var va = vec3(0,0,1);
-	var vb = vec3(0, 2 * s2/3, -1/3);
-	var vc = vec3(-s6/3, -s2/3, -1/3);
-	var vd = vec3(s6/3, -s2/3, -1/3);
-
-	tetrahedron(va, vb, vc, vd, numTimesToSubdivide);
-
+    S.normals = S.positions; 
+    S.positions[0] = (vec3(0,0,1)); // north pole
+    S.positions[(2*N+3)*N +1] = vec3(0,0,-1); // south pole
     
-	function tetrahedron(a,b,c,d,n){
-		divideTriangle(a,b,c,n);
-		divideTriangle(d,c,b,n);
-		divideTriangle(a,d,b,n);
-		divideTriangle(a,c,d,n);
-	}
+    // fill positions array
+    for(i=0; i< N; ++i){ 
+        for(j=0; j< 2*N+3; ++j){
+            S.positions[index(i,j)] = pos(i,j);
+        }
+    }
 
-	function divideTriangle(a,b,c,n){
-		if(n>0){
+    // fill triangles array
+    for(j = 0; j< 2*N+2; ++j) {
+        // north pole triangle fan
+        S.triangles.push( vec3(0, index(0,j), index(0,j+1)) ); 
+        // south pole tri fan
+        S.triangles.push( vec3( index(N-1,j), (2*N+3)*N+1, index(N-1,j+1)) ); 
+    }
+    
+    // the rest of the quads
+    for(i = 0; i<N-1; ++i){ 
+        for(j=0; j< 2*N+2; ++j){
+            S.triangles.push( vec3(index(i,j), index(i+1,j), index(i+1,j+1)) );
+            S.triangles.push( vec3(index(i,j), index(i+1, j+1), index(i,j+1)) );    
+        }
+    }
+    
+    // fill texCooords array
+    for(i = 0; i < S.positions.length; ++i){     
+        S.texCoords.push(textureCoords(S.positions[i])); 
+    }
 
-			var ab = normalize(mix(a,b,0.5));
-			var ac = normalize(mix(a,c,0.5));
-			var bc = normalize(mix(b,c,0.5));
+    function index(i,j){
+        return i*(2*N+3) + j + 1;
+    }
 
-			n--;
-
-			divideTriangle(a,ab,ac,n);
-			divideTriangle(ab,b,bc,n);
-			divideTriangle(bc,c,ac,n);
-			divideTriangle(ab,bc,ac,n);
-
-		}
-		else{
-			triangle(a,b,c);
-		}
-	}
-
-	function triangle(a,b,c){
-
-		var norm = normalize(cross(subtract(b,a), subtract(c,a)));
-
-		S.vertices.push(a,b,c);
-		if(S.positions.indexOf(a) === -1){
-			console.log("Pushing A");
-			S.positions.push(a);
-		} 
-		if(S.positions.indexOf(b) === -1){
-			console.log("Pushing B");
-			S.positions.push(b);
-		} 
-		if(S.positions.indexOf(c) === -1){
-			console.log("Pushing C");
-			S.positions.push(c);
-		} 
-		
-		var aIndex = S.positions.indexOf(a);
-		var bIndex = S.positions.indexOf(b);
-		var cIndex = S.positions.indexOf(c);
-
-		S.triangles.push([aIndex, bIndex, cIndex]);
-
-		S.normals.push(norm,norm,norm);
-
-	}
-
-
-	return S;
-
-
-
+    function pos(i, j){
+        var theta = (i+1)*Math.PI/(N+1);
+        var phi = j*Math.PI/(N+1);
+        return vec3(Math.sin(theta)*Math.cos(phi), 
+                    Math.sin(theta)*Math.sin(phi), 
+                    Math.cos(theta));
+    }
+    
+    function textureCoords(pos){
+        var x = pos[0];
+        var y = pos[1];
+        var z = pos[2];
+        var theta = Math.atan2(Math.sqrt(x*x+y*y), z);
+        var phi = Math.atan2(y,x);
+        if(phi<0){phi += 2*Math.PI; }
+        var t = vec2(phi/(2*Math.PI), 1 - theta/Math.PI);
+        return t;
+    }
+    
+    return S;
 }
 
 
 //------------------------- objInit ----------------------------------------
 function objInit(Obj){
 
-	console.log("Before");
+	//console.log("Before");
 
 	// Setup buffers
 	var vBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
 	gl.bufferData(gl.ARRAY_BUFFER, flatten(Obj.positions), gl.STATIC_DRAW);
 
-	console.log("After");
+	//console.log("After");
 
 	// Normals need to be computed here if not given
 	var nBuffer = gl.createBuffer();
@@ -193,9 +175,12 @@ function objInit(Obj){
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, iBuffer);
 	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(flatten(Obj.triangles)),gl.STATIC_DRAW);
 
-	var numItems = 3 * Obj.triangles.length;
+	var numItems = Obj.triangles.length * 3;
 
-	console.log(numItems);
+	console.log("Positions, Normals, Text Cords ", Obj.positions.length, Obj.normals.length, Obj.texCoords.length);
+	//console.log("Triangles and Num Items and Normals", Obj.triangles.length, numItems, Obj.normals.length);
+
+	//console.log(numItems);
 
 	var usingTexture = ((Obj.texCoords!==undefined) && (Obj.texCoords.length > 0));
 
@@ -304,6 +289,7 @@ function TrackBall(){
 	}
 
 	function mousemove(event){ 
+
 		if(tracking && event.buttons===1){
 			var p1 = lastVector;
 			var p2 = getMouseDirectionVector(event);
@@ -315,6 +301,7 @@ function TrackBall(){
 				gl.uniformMatrix4fv(Uniforms.TrackBallMatrix, gl.FALSE, flatten(TrackBallMatrix));
 			}
 		}
+
 	}
 
 	function getMouseDirectionVector(event){

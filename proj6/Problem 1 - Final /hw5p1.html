@@ -16,7 +16,7 @@
 <script id="vertex-shader" type="x-shader/x-vertex">
 precision mediump float;
 
-attribute vec3 vPosition, vNormal;
+attribute vec3 vNormal, vPosition;
 attribute vec2 vTexCoords;
 
 varying vec3 fPosition, fNormal;
@@ -59,7 +59,7 @@ vec4 computeColor(vec3 position, vec3 normal) {
 
       vec3 ambient = Ia*Ka ;
 	  
-	  vec3 newKd = texture2D(Sampler, fTexCoords).xyz;
+	   vec3 newKd = texture2D(Sampler, fTexCoords).xyz;
       vec3 diffuse = Id*newKd*max(0.0, dot(normal, lightDir));
 
       vec3 halfVector = normalize(lightDir + viewDir);
